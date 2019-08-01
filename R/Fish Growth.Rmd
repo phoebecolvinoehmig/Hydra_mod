@@ -1,0 +1,309 @@
+---
+title: "__Data for Pollock, White Hake, and Red Hake to be implemented in HYDRA__"
+output: html_document
+---
+# Growth Curves for Pollock, White Hake, and Red Hake
+
+__Weight/Length__
+
+The relationship between length and weight for these species as expressed by $W=a*L^b$ 
+
+__Age/Length__
+
+The von Bertalanffy growth curve was used to find the relationship between age and length using K and $L_{inf}$ as argument $L_{inf}*(1-exp(-k*t)$ for the following species.
+
+## Pollock
+ 
+
+The relationship between Pollock length (cm) and weight (lbs). The data was collected during NEFSC research bottom trawl surveys from 1992 to 1999. For the autumn surveys which were conducted from Cape Hatteras, North Carolina to Nova Scotia, Canada a= 0.000007244 and b= 3.1151 (Wigley et al., 2003). Winter/Spring surveys were conducted from Cape Hatteras, North Carolina to the Southern Flank of George's Bank a= 0.000006788 and b= 3.1024.
+
+```{r pollockweight, echo=FALSE}
+source("Weight:Length/LWformula.R") # <- function for Length Weight formula
+datafile <-  read.csv(file="Weight:Length/Pollock_SV.csv", header=TRUE, sep=",")
+modifiedData <- datafile[,c("INDWT","LENGTH")] # <- only wanted to compare weight (INDWT) and length
+
+#Finding the sample size and removing any incomplete rows (taking out the NAs)
+n <- length(modifiedData$INDWT) -sum(is.na(modifiedData$INDWT))
+
+##Pollock
+op = par(mfrow=c(1,1))
+
+#Cape Hatteras to Nova Scotia (Autumn)
+p_a<- 0.000007244
+p_b <- 3.1151
+p_L <- 0:130
+
+#Cape Hatteras, NC to southern flank of George's Bank (Winter/Spring)
+p_a2<- 0.000006788
+p_b2 <- 3.1024
+p_L2 <- 0:130
+
+#Inserting the variables into the formula
+CH2NSAutumn <- LWformula(a=p_a,b=p_b,L=p_L)
+CH2GBWinterSpring <- LWformula(a=p_a2,b=p_b2,L=p_L2)
+#Plotting
+  #Autumn
+
+plot(CH2NSAutumn,type="l", xlab= "Length (cm)",
+     ylab= "Weight (lbs)", col=c("red"))
+  #Winter/spring
+lines(CH2GBWinterSpring, col=c("blue"))
+  #Survey Data
+points(modifiedData$LENGTH,modifiedData$INDWT*2.2046)
+title(main="Pollock (L_nf=130cm)")
+legend(0,60, legend=c("Cape Hatteras, NC to Nova Scotia (Autumn)", "Cape Hatteras, NC to southern flank of George's Bank (Winter/Spring)", 
+                      paste("Survey Data (n=",n,")")), col=c("red", "blue", "black"), lty= c(1,1,NA), pch=c(NA,NA,1), cex=0.8)
+```
+
+The relationship between Pollock age (yrs) and length (cm) calculated by the von Bertalanffy growth rate for Nova Scotia, Canada where K= 0.1 and in the Northwest Atlantic, Canada where K= 0.17 (Erzini, 1991). These growth rates are compared to commercial fishing data gathered from 1976 to 2018 as well as survey data gathered by NEFSC.
+
+
+```{r pollockage, echo=FALSE}
+source("Growth/growth_curve_function.R") # <- created a function to calculate Von Bertanalanfy growth curve using K and Linf as arguments on another sheet
+#Importing data from Commerical Fisheries (CF)
+datafile <-  read.csv(file="Growth/pollockData_CF.csv", header=TRUE, sep=",")
+modifiedData <- datafile[,c("AGE","LENGTH")]
+datafileSV <- read.csv(file="Growth/pollockData_SV.csv", header=TRUE, sep=",")
+modifiedSV <- datafileSV[,c("AGE", "LENGTH")]
+
+#Sample size of survey and commercial fisheries data
+nSV <- length(modifiedSV$AGE) -sum(is.na(modifiedSV$AGE))
+nCF <- length(modifiedData$AGE) - sum(is.na(modifiedData$AGE))
+
+## Pollock
+  #Option1
+p_Linf <- 130
+p_K1 <- 0.17
+p_K2 <- 0.1
+p_t <- 0:30
+Lengthof_p1 <- p_Linf*(1-exp(-p_K1*p_t))
+Lengthof_p2 <- p_Linf*(1-exp(-p_K2*p_t))
+  #Option2
+Lengthof_p1 <- growthCurve(t= 0:30, k= 0.17, Linf= 130)
+Lengthof_p2 <- growthCurve(t= 0:30, k= 0.1, Linf= 130)
+
+##Plotting the Growth curve
+plot(0:30,Lengthof_p1,type="l", xlab= "Age (years)", ylab= "Length (cm)", col=c("red"))
+lines(p_t, Lengthof_p2, type= "l", col=c("blue"))
+  #Plotting CFData
+points(modifiedData$AGE,modifiedData$LENGTH)
+  #Plotting Survey Data
+points(modifiedSV$AGE,modifiedSV$LENGTH, pch=0)
+title(main="Pollock (L_nf=130cm)")
+legend(11,40, legend=c("Nova Scotia, CA (K=0.1)", "Northwest Atlantic, CA (K=0.17)",
+                       paste("Commercial Fishing Data (1976-2018, n=",nCF,")"),
+                       paste("Survey Data (n=",nSV,")")),col=c("red", "blue", "black", "black"),
+                             lty= c(1,1, NA, NA), pch= c(NA, NA, 1, 0), cex=0.8)
+```
+
+The relationship between red hake length (cm) and weight (lbs). The data was collected during NEFSC research bottom trawl surveys from 1992 to 1999. For the autumn surveys which were conducted from Cape Hatteras, North Carolina to Nova Scotia, Canada a= 0.000005976951 and b=3.0162 (Wigley et al., 2003). Winter and spring surveys were conducted from Cape Hatteras, North Carolina to the Southern Flank of George's Bank. For the winter surveys a= 0.000006788 and b= 3.1024. For the spring surveys a= 0.000004225 and b= 3.0979.
+
+
+## Red Hake
+
+```{r redhake, echo=FALSE}
+##RedHake
+source("Weight:Length/LWformula.R")
+datafile <-  read.csv(file="Weight:Length/redhake_SV.csv", header=TRUE, sep=",")
+modifiedData <- datafile[,c("INDWT","LENGTH")]
+
+#sample size
+n <- length(modifiedData$INDWT) -sum(is.na(modifiedData$INDWT))
+
+op = par(mfrow=c(1,1))
+
+#Cape Hatteras to Nova Scotia (Autumn)
+p_a<- 0.000005976951
+p_b <- 3.0162
+p_L <- 0:66
+#CH to GB (winter)
+p_a2<- 0.000004737
+p_b2 <- 3.0661
+p_L2 <- 0:66
+#CH to GB (spring)
+p_a3<- 0.000004225
+p_b3 <- 3.0979
+p_L3 <- 0:66
+
+#LWformula(a=p_a,b=p_b,L=p_L)
+CH2NSAutumn <- LWformula(a=p_a,b=p_b,L=p_L)
+CH2GBWinter <- LWformula(a=p_a2,b=p_b2,L=p_L2)
+CH2GBSpring <- LWformula(a=p_a3,b=p_b3,L=p_L3)
+
+plot(CH2NSAutumn,type="l", xlab= "Length (cm)", ylab= "Weight (lbs)", col=c("red"))
+lines(CH2GBWinter, col=c("blue"))
+lines(CH2GBSpring, col=c("green"))
+#Survey data
+points(modifiedData$LENGTH,modifiedData$INDWT*2.2046)
+
+title(main="Red Hake (L_nf=66cm)")
+legend(0,4.1, legend=c("Cape Hatteras, NC to Nova Scotia (Autumn)", "Cape Hatteras, NC to southern flank of George's Bank (Winter)", "Cape Hatteras, NC to southern flank of George's Bank (Spring)", 
+                      paste("Survey Data (n=",n,")")), col=c("red", "blue", "green", "black"), lty= c(1,1,1,NA), pch=c(NA,NA,NA,1), cex=0.8)
+```
+
+The relationship between red hake age (years) and length (cm) calculated by the von Bertalanffy growth rate for the North West Atlantic where K= 0.19 (Erzini, 1991). These growth rates are compared to survey data gathered by NEFSC.
+
+```{r redhakeage, echo=FALSE}
+##REDHAKE
+source("Growth/growth_curve_function.R")
+datafile <-  read.csv(file="Growth/redhake_SV.csv", header=TRUE, sep=",")
+modifiedData <- datafile[,c("AGE","LENGTH")]
+
+#sample size
+n <- length(modifiedData$AGE) -sum(is.na(modifiedData$AGE))
+
+rh_Linf <- 66
+rh_K1 <- 0.19
+rh_t <- 0:30
+#Lengthof_rh1 <- rh_Linf*(1-exp(-rh_K1*rh_t))
+Lengthof_rh1 <- growthCurve(t= 0:30, k= 0.19, Linf= 66)
+rh_pointst <- c(1,2,3)
+rh_pointsl <- c(8,13,16)
+
+#north west atlantic
+plot(rh_t,Lengthof_rh1, type="l", xlab= "Age (years)", ylab= "Length (cm)",col=c("red"))
+#survey data
+points(modifiedData$AGE, modifiedData$LENGTH)
+
+title(main="Red Hake (L_inf= 66cm)")
+legend(17,20, legend=c("North West Atlantic, US (K=0.19)",
+                       paste("Survey Data (n=",n,")")),col=c("red", "black"),
+       lty=c(1,NA),pch= c(NA, 1), cex=0.8)
+```
+
+
+
+## White Hake
+
+The relationship between white hake length (cm) and weight (lbs). The data was collected during NEFSC research bottom trawl surveys from 1992 to 1999. For the autumn surveys which were conducted from Cape Hatteras, North Carolina to Nova Scotia, Canada a= 0.000004119 and b=3.1715 (Wigley et al., 2003). Winter and spring surveys were conducted from Cape Hatteras, North Carolina to the Southern Flank of George's Bank. For the winter surveys a= 0.000001904 and b= 3.3669. For the spring surveys a= 0.000002376 and b= 3.2903.
+
+```{r whitehake, echo=FALSE}
+source("Weight:Length/LWformula.R")
+datafile <-  read.csv(file="Weight:Length/whitehake_SV.csv", header=TRUE, sep=",")
+modifiedData <- datafile[,c("INDWT","LENGTH")]
+
+#Sample size
+n <- length(modifiedData$INDWT) -sum(is.na(modifiedData$INDWT))
+
+## White Hake
+op = par(mfrow=c(1,1))
+
+#Cape Hatteras to Nova Scotia (Autumn)
+p_a<- 0.000004119
+p_b <- 3.1715
+p_L <- 0:133
+
+#Winter
+p_a2<- 0.000001904
+p_b2 <- 3.3669
+p_L2 <- 0:133
+
+#Spring
+p_a3<- 0.000002376
+p_b3 <- 3.2903
+p_L3 <- 0:133
+#LWformula(a=p_a,b=p_b,L=p_L)
+CH2NSAutumn <- LWformula(a=p_a,b=p_b,L=p_L)
+CH2GBWinter <- LWformula(a=p_a2,b=p_b2,L=p_L2)
+CH2GBSpring <- LWformula(a=p_a3,b=p_b3,L=p_L3)
+
+plot(CH2NSAutumn,type="l", xlab= "Length (cm)", ylab= "Weight (lbs)", col=c("red"))
+lines(CH2GBWinter, col=c("blue"))
+lines(CH2GBSpring, col=c("green"))
+#Survey data
+points(modifiedData$LENGTH,modifiedData$INDWT*2.2046)
+
+title(main="White Hake (L_nf= 133cm)")
+legend(0,50, legend=c("Cape Hatteras, NC to Nova Scotia (Autumn)", "Cape Hatteras, NC to southern flank of George's Bank (Winter)", "Cape Hatteras, NC to southern flank of George's Bank (Spring)", 
+                     paste("Survey Data (n=",n,")")), col=c("red", "blue", "green", "black"), lty= c(1,1,1,NA), pch=c(NA,NA,NA,1), cex=0.8)
+source("Growth/growth_curve_function.R")
+#datafile <-  read.csv(file="whitehake_SV.csv", header=TRUE, sep=",")
+modifiedData <- datafile[,c("AGE","LENGTH")]
+
+#Calculating sample size
+n <- length(modifiedData$AGE) -sum(is.na(modifiedData$AGE))
+```
+
+The relationship between white hake length and age calculated by the von Bertalanffy growth rate in two instances for the Southern Gulf of St. Lawrence in Canada where in one instance K= 0.218 and in the other K=0.106 (Clay D. & H. Clay, 1991). These growth rates are compared to survey data gathered by NEFSC.
+
+```{r whitehakeage, echo=FALSE}
+##white hake
+  #Option1
+wh_Linf <- 135 #<-Length
+wh_K1 <- 0.218 # <- study 1
+wh_K2 <- 0.106 # <- study 2
+wh_t <- 0:30 # <- Time
+Lengthof_wh1 <- wh_Linf*(1-exp(-wh_K1*wh_t))
+Lengthof_wh2 <- wh_Linf*(1-exp(-wh_K2*wh_t))
+  #Option2
+    #Study1
+Lengthof_wh1 <- growthCurve(t= 0:30, k= 0.218, Linf= 133)
+    #Study2
+Lengthof_wh2 <- growthCurve(t= 0:30, k= 0.106, Linf= 133)
+
+##white hake growth curve
+  #Study1
+plot(wh_t,Lengthof_wh1,type="l", xlab= "Age (years)", ylab= "Length (cm)",col=c("red"))
+  #Study2
+points(wh_t,Lengthof_wh2, type="l", xlab= "Age (years)", ylab= "Length (cm)",col=c( "blue"))
+
+#Plotting survey data
+points(modifiedData$AGE, modifiedData$LENGTH)
+
+title(main="White Hake (L_inf= 133cm)")
+legend(10,30, legend=c("Southern Gulf of St. Lawrence, CA Study 1 (K= 0.218)", "Southern Gulf of St. Lawrence, CA Study 2 (K=0.106)",
+                       paste("Survey Data (n=",n,")")),col=c("red", "blue", "black"), lty= c(1, 1, NA), pch= c(NA, NA, 1), cex=0.8)
+```
+
+## Distribution of Lengths for Pollock, White Hake, and Red Hake
+
+```{r lengths, echo=FALSE}
+datafile <-  read.csv(file="FoodHabits/foodHabits.csv", header=TRUE, sep=",")
+
+modifieddata <- datafile[,c("svspp", "pdlen")]
+
+for (i in c(75,76,77)){
+  filt_data  <- modifieddata[modifieddata$svspp == i,]
+    if(i==75){
+      title <- "Pollock (L_nf=130cm)"
+    }else if (i==76){
+        title <- "White hake (L_nf= 133cm)" 
+      }else if (i==77) {
+        title <- "Red hake (L_inf= 66cm)"
+      }
+  hist(filt_data$pdlen, main = title, xlab="Length (cm)", cex.axis=0.8)
+}
+```
+
+## Distribution of Mean Stomach Content Volume Across Varying Lengths
+
+```{r stomachs, echo=FALSE, message=FALSE}
+datafile <-  read.csv(file="FoodHabits/foodHabits.csv", header=TRUE, sep=",")
+modifieddata <- datafile[,c("svspp", "pdlen", "pdswgt")]
+library(dplyr)
+for (i in c(75,76,77)){
+  
+  filt_data  <- modifieddata[modifieddata$svspp == i,]
+  stomach <- filt_data %>% mutate(interval = cut(pdlen, breaks=10*(0:130), labels= NULL)) %>% 
+    group_by(interval) %>%
+    summarise(result=mean(pdswgt,na.rm=T))
+  if(i==75){
+    title <- "Pollock (L_nf=130cm)"
+  }else if (i==76){
+    title <- "White hake (L_nf= 133cm)"
+  }else if (i==77) {
+    title <- "Red hake (L_inf= 66cm)"
+  }
+  
+  if(i==75){
+    names.arg=c( "0-10", "10-20", "20-30", "30-40", "40-50", "50-60",
+                 "60-70", "70-80", "80-90", "90-100", "100-110", "110-120")
+    }else if(i==76){
+      names.arg=c( "0-10", "10-20", "20-30", "30-40", "40-50", "50-60",
+                   "60-70", "70-80", "80-90", "90-100", "100-110", "110-120", "120-130","130-140")
+  }else if(i==77){
+    names.arg=c( "0-10", "10-20", "20-30", "30-40", "40-50", "50-60","60-70","70-80","80-90")
+  }
+  barplot(stomach$result, main = title, xlab="Length (cm)", ylab="Stomach Content Volume (g)" , names.arg = names.arg, cex.names=0.5)
+}
+```
